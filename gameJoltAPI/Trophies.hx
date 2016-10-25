@@ -1,16 +1,18 @@
 package gameJoltAPI;
 
-import haxe.Http;
-import haxe.Json;
-
+// Manage trophies and achievements
 class Trophies
 {
-	static public var lastRequestSuccess:Bool;
+	static private var className:String = "gameJoltAPI.Trophies";
 	static public var result:Dynamic;
+	static public var lastRequestSuccess(get, never):Bool;
+	static private function get_lastRequestSuccess() : Bool
+	{
+		return result == null ? false : result.success == "true";
+	}
 	
 	static public function fetch(username:String, user_token:String, ?achieved:Bool, ?trophy_id:Array<Int>)
 	{
-		var request = new Http(null);
 		var url:String;
 		if(trophy_id != null && trophy_id.length > 1)
 		{
@@ -18,33 +20,19 @@ class Trophies
 			for(k in trophy_id)
 				arg += Std.string(k) + ",";
 			arg = arg.substr(0, arg.length - 1);
-			url = Utils.formCall("trophies/", [ "game_id", "username", "user_token", "achieved", "trophy_id", "format" ],
-											  [ Std.string(Utils.game_id), username, user_token, achieved ? "true" : "false", arg, "json" ], 6);
+			url = Utils.formCall("trophies/", [ "game_id", "username", "user_token", "achieved", "trophy_id" ],
+											  [ Std.string(Utils.game_id), username, user_token, achieved ? "true" : "false", arg ], 5);
 		}
 		else
-			url = Utils.formCall("trophies/", [ "game_id", "username", "user_token", "achieved", "trophy_id", "format" ],
-											  [ Std.string(Utils.game_id), username, user_token, achieved ? "true" : "false", trophy_id != null ? Std.string(trophy_id[0]) : null, "json" ], 6);
-		request.url = url;
-		request.onData = writeData;
-		request.request();
+			url = Utils.formCall("trophies/", [ "game_id", "username", "user_token", "achieved", "trophy_id" ],
+											  [ Std.string(Utils.game_id), username, user_token, achieved ? "true" : "false", trophy_id != null ? Std.string(trophy_id[0]) : null ], 5);
+		Utils.request(url, className);
 	}
 	
-	static public function addAchieved(username:String, user_token:String, trophy_id:Int)
+	static public function setAchieved(username:String, user_token:String, trophy_id:Int)
 	{
-		var request = new Http(null);
-		var url = Utils.formCall("trophies/add-achieved/", [ "game_id", "username", "user_token", "trophy_id", "format" ],
-														   [ Std.string(Utils.game_id), username, user_token, Std.string(trophy_id), "json" ], 5);
-		request.url = url;
-		request.onData = writeData;
-		request.request();
-	}
-	
-	// HTTP onData callback
-	static private function writeData(data:String)
-	{
-		var obj = Json.parse(data);
-		lastRequestSuccess = obj.response.success == "true";
-		if(lastRequestSuccess)
-			result = obj.response;
+		var url = Utils.formCall("trophies/add-achieved/", [ "game_id", "username", "user_token", "trophy_id" ],
+														   [ Std.string(Utils.game_id), username, user_token, Std.string(trophy_id) ], 4);
+		Utils.request(url, className);
 	}
 }

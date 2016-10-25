@@ -1,48 +1,39 @@
 package gameJoltAPI;
 
-import haxe.Http;
-import haxe.Json;
-
+// Manage score tables, scores and rankings
 class Scores
 {
-	static public var lastRequestSuccess:Bool;
+	static private var className:String = "gameJoltAPI.Scores";
 	static public var result:Dynamic;
-	
-	static public function fetch(?username:String, ?user_token:String, ?limit:Int, ?table_id:String)
+	static public var lastRequestSuccess(get, never):Bool;
+	static private function get_lastRequestSuccess() : Bool
 	{
-		var request = new Http(null);
-		var url = Utils.formCall("scores/", [ "game_id", "username", "user_token", "limit", "table_id", "format" ],
-											[ Std.string(Utils.game_id), username, user_token, Std.string(limit), table_id, "json" ], 6);
-		request.url = url;
-		request.onData = writeData;
-		request.request();
+		return result == null ? false : result.success == "true";
 	}
 	
-	static public function add(score:String, sort:Int, ?username:String, ?user_token:String, ?guest:String, ?extra_data:String, ?table_id:String)
+	static public function fetch(?username:String, ?user_token:String, ?limit:Int, ?table_id:Int)
 	{
-		var request = new Http(null);
+		var url = Utils.formCall("scores/", [ "game_id", "username", "user_token", "limit", "table_id", "format" ],
+											[ Std.string(Utils.game_id), username, user_token, Std.string(limit), Std.string(table_id), "json" ], 6);
+		Utils.request(url, className);
+	}
+	
+	static public function add(score:String, sort:Int, ?username:String, ?user_token:String, ?guest:String, ?extra_data:String, ?table_id:Int)
+	{
 		var url = Utils.formCall("scores/add/", [ "game_id", "score", "sort", "username", "user_token", "guest", "extra_data", "table_id", "format" ],
-											[ Std.string(Utils.game_id), score, Std.string(sort), username, user_token, guest, extra_data, table_id, "json" ], 9);
-		request.url = url;
-		request.onData = writeData;
-		request.request();
+											[ Std.string(Utils.game_id), score, Std.string(sort), username, user_token, guest, extra_data, Std.string(table_id), "json" ], 9);		
+		Utils.request(url, className);
+	}
+	
+	static public function getRank(sort:Int, ?table_id:Int)
+	{
+		var url = Utils.formCall("scores/get-rank/", ["game_id", "sort", "table_id"], [Std.string(Utils.game_id), Std.string(sort), Std.string(table_id)], 3);
+		Utils.request(url, className);
 	}
 	
 	static public function tables()
 	{
-		var request = new Http(null);
 		var url = Utils.formCall("scores/tables/", [ "game_id", "format" ], [ Std.string(Utils.game_id), "json" ], 2);
-		request.url = url;
-		request.onData = writeData;
-		request.request();
-	}
-	
-	// HTTP onData callback
-	static private function writeData(data:String)
-	{
-		var obj = Json.parse(data);
-		lastRequestSuccess = obj.response.success == "true";
-		if(lastRequestSuccess)
-			result = obj.response;
+		Utils.request(url, className);
 	}
 }

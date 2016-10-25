@@ -1,12 +1,14 @@
 package gameJoltAPI;
 
 import haxe.crypto.Md5;
+import haxe.Http;
+import haxe.Json;
 
 @:allow(gameJoltAPI)
 class Utils
 {
 	// ---------------------------------------------------------------------------------------
-	// The game's ID must be set by the programmer before any call to the GameJolt API is made 
+	// The game's ID must be set by the programmer before any call to the GameJolt API is made
 	// ---------------------------------------------------------------------------------------
 	static private var has_game_id:Bool = false;
 	@:isVar static public var game_id(get, set):Int;
@@ -14,15 +16,12 @@ class Utils
 	{
 		if(has_game_id) return game_id;
 		else 
-		{
-			trace("No game ID provided");
-			return null;
-		}
+			throw "GameJolt API : No game ID provided";
 	}
 	static public function set_game_id(v:Int) : Int
 	{
 		has_game_id = true;
-		return (game_id = v);
+		return game_id = v;
 	}
 	
 	// -------------------------------------------
@@ -34,10 +33,7 @@ class Utils
 	{
 		if(has_gamePrivKey) return gamePrivKey;
 		else 
-		{
-			trace("No game private key provided");
-			return null;
-		}
+			throw "GameJolt API : No game private key provided";
 	}
 	static public function set_gamePrivKey(v:String) : String
 	{
@@ -56,7 +52,10 @@ class Utils
 	// ----------------------------------------------------
 	// Below this point are private functions and variables
 	// ----------------------------------------------------
-	static private var BASE_URL = "http://gamejolt.com/api/game/v1/";
+	static private var batching:Bool = false;
+	static private var batchString:String;
+	static private var r:Http;
+	static private var BASE_URL = "http://api.gamejolt.com/api/game/v1_1/";
 	
 	// Signs the call with MD5
 	static private function sign(call:String) : String
@@ -64,18 +63,35 @@ class Utils
 		return call + "&signature=" + Md5.encode(call + gamePrivKey);
 	}
 	
-	static private function formCall(base:String, keys:Array<String>, values:Array<String>, index:Int) : String
+	// Forms the call using the base URL, keys and values, and adds a JSON format specifier
+	static private function formCall(base:String, keys:Array<String>, values:Array<String>, index:Int, addSig:Bool = true) : String
 	{
-		var url = BASE_URL + base;
+		var url = (batching ? "/" : BASE_URL) + base;
 		for(k in 0 ... index)
 			url = addParameter(url, keys[k], values[k]);
-		return sign(url);
+		if(!batching) url = addParameter(url, "format", "json");
+		return addSig ? sign(url) : url;
 	}
 	
+	// Adds a parameter to an URL call
 	static private function addParameter(call:String, param:String, value:String) : String
 	{
-		if(value != null)
+		if(value != "null" && value != null)
 			call += (call.indexOf('?') == -1 ? "?" : "&") + param + "=" + value;
 		return call;
+	}
+	
+	// Sends the request and calls an onData callback
+	// Do not give a caller or post parameter when making a batch request
+	static private function request(url:String, ?caller:String, ?post:Bool = false)
+	{
+		if(batching)
+			batchString += "&requests[]=" + StringTools.urlEncode(url);
+		else
+		{
+			r = new Http(url);
+			r.onData = function (data:String) { var obj = Json.parse(data); if(obj.response.success == "true") Reflect.setField(Type.resolveClass(caller), "result", obj.response); }
+			r.request(post);
+		}
 	}
 }
