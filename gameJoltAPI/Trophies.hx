@@ -29,7 +29,7 @@ class Trophies
 		Utils.request(url, className);
 	}
 	
-	static public function setAchieved(username:String, user_token:String, trophy_id:Int)
+	static public function addAchieved(username:String, user_token:String, trophy_id:Int)
 	{
 		var url = Utils.formCall("trophies/add-achieved/", [ "game_id", "username", "user_token", "trophy_id" ],
 														   [ Std.string(Utils.game_id), username, user_token, Std.string(trophy_id) ], 4);
