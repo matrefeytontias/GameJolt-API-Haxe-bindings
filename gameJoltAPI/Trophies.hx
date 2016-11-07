@@ -11,7 +11,7 @@ class Trophies
 		return result == null ? false : result.success == "true";
 	}
 	
-	static public function fetch(username:String, user_token:String, ?achieved:Bool, ?trophy_id:Array<Int>)
+	static public function fetch(username:String, user_token:String, ?achieved:Bool, ?trophy_id:Array<Int>, ?onData:Bool -> Void, ?onError:String -> Void)
 	{
 		var url:String;
 		if(trophy_id != null && trophy_id.length > 1)
@@ -26,13 +26,13 @@ class Trophies
 		else
 			url = Utils.formCall("trophies/", [ "game_id", "username", "user_token", "achieved", "trophy_id" ],
 											  [ Std.string(Utils.game_id), username, user_token, achieved ? "true" : "false", trophy_id != null ? Std.string(trophy_id[0]) : null ], 5);
-		Utils.request(url, className);
+		Utils.request(url, className, onData, onError);
 	}
 	
-	static public function addAchieved(username:String, user_token:String, trophy_id:Int)
+	static public function addAchieved(username:String, user_token:String, trophy_id:Int, ?onData:Bool -> Void, ?onError:String -> Void)
 	{
 		var url = Utils.formCall("trophies/add-achieved/", [ "game_id", "username", "user_token", "trophy_id" ],
 														   [ Std.string(Utils.game_id), username, user_token, Std.string(trophy_id) ], 4);
-		Utils.request(url, className);
+		Utils.request(url, className, onData, onError);
 	}
 }

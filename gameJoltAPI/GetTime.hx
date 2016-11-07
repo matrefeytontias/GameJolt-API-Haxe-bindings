@@ -11,9 +11,9 @@ class GetTime
 		return result == null ? false : result.success == "true";
 	}
 	
-	static public function fetch()
+	static public function fetch(?onData:Bool -> Void, ?onError:String -> Void)
 	{
 		var url = Utils.formCall("get-time/", ["game_id"], [Std.string(Utils.game_id)], 1);
-		Utils.request(url, className);
+		Utils.request(url, className, onData, onError);
 	}
 }

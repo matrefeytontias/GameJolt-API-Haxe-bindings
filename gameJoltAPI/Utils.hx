@@ -83,14 +83,23 @@ class Utils
 	
 	// Sends the request and calls an onData callback
 	// Do not give a caller or post parameter when making a batch request
-	static private function request(url:String, ?caller:String, ?post:Bool = false)
+	static private function request(url:String, ?caller:String, ?post:Bool = false, ?onData:Bool -> Void, ?onError:String -> Void)
 	{
 		if(batching)
 			batchString += "&requests[]=" + StringTools.urlEncode(url);
 		else
 		{
 			r = new Http(url);
-			r.onData = function (data:String) { var obj = Json.parse(data); if(obj.response.success == "true") Reflect.setField(Type.resolveClass(caller), "result", obj.response); }
+			var c = Type.resolveClass(caller);
+			r.onError = onError == null ? function (m:String) { trace("Error : " + m); } : onError;
+			r.onData = function (data:String)
+				{
+					var obj = Json.parse(data);
+					if(obj.response.success == "true")
+						Reflect.setField(c, "result", obj.response);
+					if(onData != null)
+						onData(obj.response.success == "true");
+				};
 			r.request(post);
 		}
 	}

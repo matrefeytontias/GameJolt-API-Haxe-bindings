@@ -54,11 +54,11 @@ class Batch
 		Utils.batchString = "";
 	}
 	
-	static public function request(post:Bool = true, ?parallel:Bool, ?break_on_error:Bool)
+	static public function request(post:Bool = true, ?parallel:Bool, ?break_on_error:Bool, ?onData:Bool -> Void, ?onError:String -> Void)
 	{
 		Utils.batching = false;
 		var url = Utils.formCall("batch/", ["game_id", "parallel", "break_on_error"], [Std.string(Utils.game_id), Std.string(parallel), Std.string(break_on_error)], 3, false) + Utils.batchString;
-		Utils.request(Utils.sign(url), className, post);
+		Utils.request(Utils.sign(url), className, post, onData, onError);
 	}
 	
 	static public function end()
