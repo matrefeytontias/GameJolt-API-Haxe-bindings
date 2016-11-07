@@ -7,41 +7,43 @@ This library follows the same structure as the official GameJolt Game API.
 
 - package gameJoltAPI
     - class Batch
-        - function getRequestSucess
-        - function getResponse
-        - function start
-        - function request
-        - function end
+        - `function getRequestSucess(which:Int)`
+        - `function getResponse(which:Int)`
+        - `function start()`
+        - `function request(post:Bool = true, ?parallel:Bool, ?break_on_error:Bool)`
+        - `function end()`
     - class Users
-        - function fetch
-        - function auth
+        - `function fetch(?user_id:Array<Int>, ?username:String)`
+        - `function auth(username:String, user_token:String)`
     - class Sessions
-        - function open
-        - function ping
-        - function check
-        - function close
+        - `function open(username:String, user_token:String)`
+        - `function ping(username:String, user_token:String, ?status:String)`
+        - `function check(username:String, user_token:String)`
+        - `function close(username:String, user_token:String)`
     - class Trophies
-        - function fetch
-        - function addAchieved
+        - `function fetch(username:String, user_token:String, ?achieved:Bool, ?trophy_id:Array<Int>)`
+        - `function addAchieved(username:String, user_token:String, trophy_id:Int)`
     - class Scores
-        - function fetch
-        - function add
-        - function getRank
-        - function tables
+        - `function fetch(?username:String, ?user_token:String, ?limit:Int, ?table_id:Int)`
+        - `function add(score:String, sort:Int, ?username:String, ?user_token:String, ?guest:String, ?extra_data:String, ?table_id:Int)`
+        - `function getRank(sort:Int, ?table_id:Int)`
+        - `function tables()`
     - class DataStore
-        - function fetch
-        - function set
-        - function update
-        - function remove
-        - function getKeys
+        - `function fetch(key:String, ?username:String, ?user_token:String)`
+        - `function set(key:String, data:String, ?username:String, ?user_token:String)`
+        - `function update(key:String, operation:String, value:String, ?username:String, ?user_token:String)`
+        - `function remove(key:String, ?username:String, ?user_token:String)`
+        - `function getKeys(?username:String, ?user_token:String)`
     - class GetTime
-        - function fetch
+        - `function fetch()`
     - class Utils
-        - var game_id
-        - var gamePrivKey
-        - var user_id
-        - var user_token
-        - var username
+        - `var game_id`
+        - `var gamePrivKey`
+        - `var user_id`
+        - `var user_token`
+        - `var username`
+
+Every single function except `Batch.getRequestSuccess, Batch.getReponse, Batch.start, Batch.end` takes two optional arguments `onData:Bool -> Void` and `onError:String -> Void` : those are callbacks that get called when an error occurs and after the data is received respectively.
 
 The library works as follows :
 
@@ -61,12 +63,16 @@ class Main
     {
 		Utils.game_id = 12345;
 		Utils.gamePrivKey = "12345678912345678912345678912345";
-		Users.fetch("matrefeytontias");
-		if(Users.lastRequestSuccess)
-		{
-			var d = Users.result.users[0];
-			trace(d.id, d.type, d.last_logged_in);
-		}
+		Users.fetch("matrefeytontias", onData);
+    }
+    
+    static private function onData(s:Bool)
+    {
+        if(s)
+        {
+            var d = Users.result.response.users[0];
+            trace(d.id, d.type, d.last_logged_in);
+        }
     }
 }
 ```
