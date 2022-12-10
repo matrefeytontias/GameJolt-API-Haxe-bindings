@@ -21,11 +21,11 @@ class Trophies
 				arg += Std.string(k) + ",";
 			arg = arg.substr(0, arg.length - 1);
 			url = Utils.formCall("trophies/", [ "game_id", "username", "user_token", "achieved", "trophy_id" ],
-											  [ Std.string(Utils.game_id), username, user_token, achieved ? "true" : "false", arg ], 5);
+											  [ Std.string(Utils.game_id), username, user_token, Std.string(achieved), arg ], 5);
 		}
 		else
 			url = Utils.formCall("trophies/", [ "game_id", "username", "user_token", "achieved", "trophy_id" ],
-											  [ Std.string(Utils.game_id), username, user_token, achieved ? "true" : "false", trophy_id != null ? Std.string(trophy_id[0]) : null ], 5);
+											  [ Std.string(Utils.game_id), username, user_token, Std.string(achieved), trophy_id != null ? Std.string(trophy_id[0]) : null ], 5);
 		Utils.request(url, className, onData, onError);
 	}
 	
